@@ -1,0 +1,28 @@
+{
+  "name": "IdleQuestAdventure",
+  "globIgnorePaths": [ "**/.package-lock.json" ],
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": {
+      "IdleQuestAdventure": {
+        "$className": "Folder",
+        "game": {
+          "$path": "src/modules"
+        },
+        "node_modules": {
+          "$path": "node_modules"
+        }
+      },
+      "IdleQuestAdventureScripts": {
+        "$path": "src/scripts/Server"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "IdleQuestAdventureScripts": {
+          "$path": "src/scripts/Client"
+        }
+      }
+    }
+  }
+}

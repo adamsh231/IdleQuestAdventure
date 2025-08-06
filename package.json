@@ -1,0 +1,21 @@
+{
+  "name": "idlequestadventure",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [
+    "Roblox",
+    "Nevermore",
+    "Lua"
+  ],
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@quenty/binder": "^14.21.0",
+    "@quenty/clienttranslator": "^14.20.0",
+    "@quenty/cmdrservice": "^13.24.0",
+    "@quenty/loader": "^10.9.0",
+    "@quenty/servicebag": "^11.13.0"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  }
+}
