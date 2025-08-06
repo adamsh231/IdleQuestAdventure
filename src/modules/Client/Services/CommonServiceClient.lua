@@ -15,7 +15,7 @@ function CommonServiceClient:Init(serviceBag)
 	self._serviceBag:GetService(require("CmdrServiceClient"))
 
 	-- Internal
-	self._serviceBag:GetService(require("Translator"))
+	-- self._serviceBag:GetService(require("Translator"))
 end
 
 return CommonServiceClient

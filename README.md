@@ -3,6 +3,7 @@
 Source code for IdleQuestAdventure. This game was generated using Nevermore's CLI.
 
 - Binders Folder on modules client/server
+- `.` for self manual (using for utility), `:` include self
 
 # Tools
 
