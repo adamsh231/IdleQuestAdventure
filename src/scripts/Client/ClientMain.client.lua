@@ -5,6 +5,6 @@ local loader = game:GetService("ReplicatedStorage"):WaitForChild("IdleQuestAdven
 local require = require(loader).bootstrapGame(loader.Parent)
 
 local serviceBag = require("ServiceBag").new()
-serviceBag:GetService(require("IdleQuestAdventureServiceClient"))
+serviceBag:GetService(require("CommonServiceClient"))
 serviceBag:Init()
 serviceBag:Start()

@@ -7,6 +7,6 @@ local loader = ServerScriptService.IdleQuestAdventure:FindFirstChild("LoaderUtil
 local require = require(loader).bootstrapGame(ServerScriptService.IdleQuestAdventure)
 
 local serviceBag = require("ServiceBag").new()
-serviceBag:GetService(require("IdleQuestAdventureService"))
+serviceBag:GetService(require("CommonServiceServer"))
 serviceBag:Init()
 serviceBag:Start()

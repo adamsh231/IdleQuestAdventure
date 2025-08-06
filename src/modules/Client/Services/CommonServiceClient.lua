@@ -1,13 +1,13 @@
 --[=[
-	@class IdleQuestAdventureServiceClient
+	@class CommonServiceClient
 ]=]
 
 local require = require(script.Parent.loader).load(script)
 
-local IdleQuestAdventureServiceClient = {}
-IdleQuestAdventureServiceClient.ServiceName = "IdleQuestAdventureServiceClient"
+local CommonServiceClient = {}
+CommonServiceClient.ServiceName = "CommonServiceClient"
 
-function IdleQuestAdventureServiceClient:Init(serviceBag: ServiceBag.ServiceBag)
+function CommonServiceClient:Init(serviceBag)
 	assert(not self._serviceBag, "Already initialized")
 	self._serviceBag = assert(serviceBag, "No serviceBag")
 
@@ -15,7 +15,7 @@ function IdleQuestAdventureServiceClient:Init(serviceBag: ServiceBag.ServiceBag)
 	self._serviceBag:GetService(require("CmdrServiceClient"))
 
 	-- Internal
-	self._serviceBag:GetService(require("IdleQuestAdventureTranslator"))
+	self._serviceBag:GetService(require("Translator"))
 end
 
-return IdleQuestAdventureServiceClient
+return CommonServiceClient
