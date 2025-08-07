@@ -5,12 +5,12 @@ PlayerStatConstant.ModuleName = "PlayerStatConstant"
 PlayerStatConstant.BasicStats = {
     HP = 100,
     AttackDamage = 10,
-    SkillDamage = 20,
-    Defense = 30,
+    SkillDamage = 10,
+    Defense = 10,
 
     Level = 1,
-    EXP = 0,
-    MaxEXP = 100,
+    XP = 0,
+    MaxXP = 100,
 }
 
 PlayerStatConstant.AdvancedStats = {
