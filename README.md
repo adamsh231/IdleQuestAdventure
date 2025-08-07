@@ -2,7 +2,23 @@
 
 Source code for IdleQuestAdventure. This game was generated using Nevermore's CLI.
 
+
+``` init
+-- -- External
+-- self._serviceBag:GetService(require("CmdrService"))
+
+-- -- Internal
+-- self._serviceBag:GetService(require("Translator"))
+```
 - Binders Folder on modules client/server
+- service called with servicebag
+- util nevermore can just only require
+- service main need to be called inside script
+- client and server can called shared util and constant
+- remote event manually organized
+- folder manually organized
+- maid promise only if dynamic, maid task only for dynamic triger or connection (destory method only for unit test)
+- use reactive instance util for dynamic, use promise for static
 - `.` for self manual (using for utility), `:` include self
 
 # Tools
