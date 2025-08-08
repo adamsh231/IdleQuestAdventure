@@ -15,11 +15,10 @@ function PlayerStatServiceClient:TriggerListener()
 	assert(self._serviceBag, "Not initialized")
 
 	local getPlayerStatEvent = ReplicatedStorage.RemoteEvents.PlayerStatEvent
-
 	PromiseChild(getPlayerStatEvent, "GetPlayerStat")
 		:Then(function(getPlayerStat)
 			getPlayerStat.OnClientEvent:Connect(function(statValue)
-				print(statValue)
+				print("Received PlayerStat:", statValue)
 			end)
 		end)
 		:Catch(function(err)
@@ -31,7 +30,6 @@ end
 
 local Player = game:GetService("Players").LocalPlayer
 function PlayerStatServiceClient._triggerButtonXP()
-
 	PromiseChild(Player, "PlayerGui")
 		:Then(function(playerGui)
 			PromiseChild(playerGui, "ScreenGui")
