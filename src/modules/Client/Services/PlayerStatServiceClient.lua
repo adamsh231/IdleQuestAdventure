@@ -1,7 +1,6 @@
 local require = require(script.Parent.loader).load(script)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PromiseChild = require("promiseChild")
-local PlayerStatConstant = require("PlayerStatConstant")
 
 local PlayerStatServiceClient = {}
 PlayerStatServiceClient.ServiceName = "PlayerStatServiceClient"
