@@ -5,11 +5,13 @@ local require = require(loader).bootstrapGame(ServerScriptService.IdleQuestAdven
 
 local serviceBag = require("ServiceBag").new()
 local playerStatService = serviceBag:GetService(require("PlayerStatServiceServer"))
--- local playerResourceService = serviceBag:GetService(require("PlayerResourceServer"))
+local playerResourceService = serviceBag:GetService(require("PlayerResourceServiceServer"))
 
 serviceBag:Init()
 serviceBag:Start()
 
 -- Trigger once Here
 playerStatService:TriggerClientEvent()
--- playerResourceService:TriggerClientEvent()
+task.delay(1, function()
+    playerResourceService:SetCoin(100)
+end) -- Ensure the event is set up before triggering
