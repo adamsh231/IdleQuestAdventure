@@ -2,22 +2,22 @@ local require = require(script.Parent.loader).load(script)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PromiseChild = require("promiseChild")
 
-local PlayerStatServiceClient = {}
-PlayerStatServiceClient.ServiceName = "PlayerStatServiceClient"
+local PlayerInfoClient = {}
+PlayerInfoClient.ServiceName = "PlayerInfoClient"
 
-function PlayerStatServiceClient:Init(serviceBag)
+function PlayerInfoClient:Init(serviceBag)
 	assert(not self._serviceBag, "Already initialized")
 	self._serviceBag = assert(serviceBag, "No serviceBag")
 end
 
-function PlayerStatServiceClient:TriggerListener()
+function PlayerInfoClient:TriggerListener()
 	assert(self._serviceBag, "Not initialized")
 
-	local getPlayerStatEvent = ReplicatedStorage.RemoteEvents.PlayerStatEvent
-	PromiseChild(getPlayerStatEvent, "GetPlayerStat")
+	local getPlayerInfoEvent = ReplicatedStorage.RemoteEvents.PlayerInfoEvent
+	PromiseChild(getPlayerInfoEvent, "GetPlayerStat")
 		:Then(function(getPlayerStat)
-			getPlayerStat.OnClientEvent:Connect(function(statValue)
-				print("Received PlayerStat:", statValue)
+			getPlayerStat.OnClientEvent:Connect(function(infoValue)
+				print("Received PlayerStat:", infoValue)
 			end)
 		end)
 		:Catch(function(err)
@@ -28,7 +28,7 @@ function PlayerStatServiceClient:TriggerListener()
 end
 
 local Player = game:GetService("Players").LocalPlayer
-function PlayerStatServiceClient._triggerButtonXP()
+function PlayerInfoClient._triggerButtonXP()
 	PromiseChild(Player, "PlayerGui")
 		:Then(function(playerGui)
 			PromiseChild(playerGui, "ScreenGui")
@@ -47,4 +47,4 @@ function PlayerStatServiceClient._triggerButtonXP()
 		end)
 end
 
-return PlayerStatServiceClient
+return PlayerInfoClient

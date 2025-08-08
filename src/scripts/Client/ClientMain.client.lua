@@ -2,10 +2,10 @@ local loader = game:GetService("ReplicatedStorage"):WaitForChild("IdleQuestAdven
 local require = require(loader).bootstrapGame(loader.Parent)
 
 local serviceBag = require("ServiceBag").new()
-local playerStatService = serviceBag:GetService(require("PlayerStatServiceClient"))
+local PlayerInfoClient = serviceBag:GetService(require("PlayerInfoClient"))
 
 serviceBag:Init()
 serviceBag:Start()
 
 -- Trigger once Here
-playerStatService:TriggerListener()
+PlayerInfoClient:TriggerListener()

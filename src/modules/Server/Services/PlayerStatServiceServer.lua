@@ -49,7 +49,7 @@ end
 function PlayerStatServiceServer:TriggerClientEvent()
     assert(self._serviceBag, "Not initialized")
 
-	local getPlayerStatEvent = ReplicatedStorage.RemoteEvents.PlayerStatEvent
+	local getPlayerStatEvent = ReplicatedStorage.RemoteEvents.PlayerInfoEvent
 	PromiseChild(getPlayerStatEvent, "GetPlayerStat")
 		:Then(function(getPlayerStat)
             self:_onPlayerConnect(getPlayerStat)
@@ -64,12 +64,12 @@ function PlayerStatServiceServer:_onPlayerConnect(getPlayerStat)
         self._maid[player] = Maid.new()
         self._maid[player]:GivePromise(self._playerDataStoreService:PromiseDataStore(player))
             :Then(function(dataStore)
-                self._maid[player]:GivePromise(dataStore:Load("PlayerStat", self._getDefaultStats()))
+                self._maid[player]:GivePromise(dataStore:Load("stat", self._getDefaultStats()))
                     :Then(function(statValue)
                         getPlayerStat:FireClient(player, statValue)
                     end)
                     :Catch(function(err)
-                        warn("Failed to get PlayerStat for player:", player.Name, err)
+                        warn("Failed to get Stat for player:", player.Name, err)
                     end)
             end)
             :Catch(function(err)
