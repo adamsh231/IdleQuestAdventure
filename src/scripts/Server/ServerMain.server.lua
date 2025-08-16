@@ -11,7 +11,4 @@ serviceBag:Init()
 serviceBag:Start()
 
 -- Trigger once Here
--- playerStatService:TriggerClientEvent()
--- task.delay(1, function()
---     playerResourceService:SetCoin(100)
--- end)
+playerStatService:TriggerClientEvent()

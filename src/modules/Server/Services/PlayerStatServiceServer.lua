@@ -80,7 +80,7 @@ end
 
 function PlayerStatServiceServer:_onPlayerDisconnect(self)
     Players.PlayerRemoving:Connect(function(player)
-        self._maid[player]:DoCleaning()
+        self._maid[player]:DoCleaning()  -- self._maid[player] = nil
     end)
 end
 
