@@ -8,6 +8,7 @@ PlayerResourceServiceServer.ServiceName = "PlayerResourceServiceServer"
 function PlayerResourceServiceServer:Init(serviceBag)
 	assert(not self._serviceBag, "Already initialized")
 	self._serviceBag = assert(serviceBag, "No serviceBag")
+    self._playerDataStoreService = serviceBag:GetService(require("PlayerDataStoreService"))
 
     self._coinChanged = Signal.new()
     self._coinChanged:Connect(function(newAmount)
@@ -20,7 +21,7 @@ function PlayerResourceServiceServer._getDefaultResource()
     return coin, gem
 end
 
-function PlayerResourceServiceServer:SetCoin(value)
+function PlayerResourceServiceServer:SetSignalCoin(value)
     assert(self._serviceBag, "Not initialized")
     self._coin = value
     self._coinChanged:Fire(value)
