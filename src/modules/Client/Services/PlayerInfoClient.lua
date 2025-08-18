@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local SoundService = game:GetService("SoundService")
 local PromiseWrapperUtil = require("PromiseWrapperUtil")
+local EventConstant = require("EventConstant")
 
 local PlayerInfoClient = {}
 PlayerInfoClient.ServiceName = "PlayerInfoClient"
@@ -23,27 +24,34 @@ function PlayerInfoClient:_initiateServerEvents()
 	assert(self._serviceBag, "Not initialized")
 
 	-- player info promise
-	local getPlayerInfoEvent = ReplicatedStorage.RemoteEvents.PlayerInfoEvent
 	PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerInfo", function(playerInfo)
 		local playerInfoFrame = playerInfo:FindFirstChild("PlayerInfoFrame")
 		local playerName = playerInfoFrame:FindFirstChild("PlayerName")
 		local playerLevel = playerInfoFrame:FindFirstChild("PlayerLevel")
 		local playerPic = playerInfoFrame:FindFirstChild("PlayerPic")
-		playerName.Text = Player.Name
-		playerLevel.Text = "..."
+		playerName.Text = Player.DisplayName
+		playerLevel.Text = "-"
 		playerPic.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
-	end)
-	PromiseWrapperUtil:PromiseChild(getPlayerInfoEvent, "GetPlayerStat", function(getPlayerStat)
-		getPlayerStat.OnClientEvent:Connect(function(statValue)
-			self:SetLevel(statValue.Level)
+		
+		-- event xp
+		local RemoteEvents = ReplicatedStorage.RemoteEvents
+		PromiseWrapperUtil:PromiseChild(RemoteEvents, "GetPlayerStat", function(getPlayerStatEvent)
+			local addXPButton = playerInfo:FindFirstChild("AddXP")
+			addXPButton.MouseButton1Click:Connect(function()
+				getPlayerStatEvent:FireServer(EventConstant.PlayerAddXPEvent)
+			end)
+
+			getPlayerStatEvent.OnClientEvent:Connect(function(statValue)
+				self:SetLevel(statValue.Level)
+			end)
 		end)
 	end)
 
 	-- SoundTracks
 	PromiseWrapperUtil:PromiseChild(SoundService, "SoundTracks", function(soundTracks)
-		local mainAmbience = soundTracks:FindFirstChild("Main")
-		mainAmbience:Play()
-		mainAmbience.Looped = true
+		local soundtrackLobby = soundTracks:FindFirstChild("Lobby")
+		soundtrackLobby:Play()
+		soundtrackLobby.Looped = true
 	end)
 end
 

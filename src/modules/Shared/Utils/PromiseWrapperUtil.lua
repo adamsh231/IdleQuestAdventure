@@ -6,9 +6,7 @@ local PromiseWrapperUtil = {}
 
 function PromiseWrapperUtil:PromiseChild(parent, child, callback)
 	PromiseChild(parent, child)
-		:Then(function(result)
-			callback(result)
-		end)
+		:Then(callback)
 		:Catch(function(err)
 			warn(string.format("Failed to get %s in %s event: %s", tostring(child), tostring(parent), tostring(err)))
 		end)
