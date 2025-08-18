@@ -41,43 +41,43 @@ end
 function PlayerStatServiceServer:_initiateClientEvents()
     assert(self._serviceBag, "Not initialized")
 
-    local function _onPlayerConnect(getPlayerStat)
-        Players.PlayerAdded:Connect(function(player)
-            self._maid[player] = Maid.new()
-            self._maid[player]:GivePromise(self._playerDataStoreService:PromiseDataStore(player))
-                :Then(function(dataStore)
-                    self._maid[player]:GivePromise(dataStore:Load("stat", self._defaultStat))
-                        :Then(function(statValue)
-                            getPlayerStat:FireClient(player, statValue)
-                        end)
-                        :Catch(function(err)
-                            warn("Failed to get Stat for player:", player.Name, err)
-                        end)
-                end)
-                :Catch(function(err)
-                    warn("Failed to get DataStore for player:", player.Name, err)
-                end)
-        end)
-    end
-
-    local function _onPlayerDisconnect()
-        Players.PlayerRemoving:Connect(function(player)
-            if self._maid[player] then
-                self._maid[player]:DoCleaning()  -- Clean up the maid for the player
-                self._maid[player] = nil  -- Remove the player from the maid table
-            end
-        end)
-    end
-
 	local getPlayerStatEvent = ReplicatedStorage.RemoteEvents.PlayerInfoEvent
 	PromiseChild(getPlayerStatEvent, "GetPlayerStat")
 		:Then(function(getPlayerStat)
-            _onPlayerConnect(getPlayerStat)
-            _onPlayerDisconnect()
+            Players.PlayerAdded:Connect(function(player)
+                self:_connectPlayerStat(player, getPlayerStat)
+            end)
+            Players.PlayerRemoving:Connect(function(player)
+                self:_disconnectPlayerStat(player)
+            end)
 		end)
 		:Catch(function(err)
 			warn("Failed to get GetPlayerStat event:", err)
 		end)
+end
+
+function PlayerStatServiceServer:_connectPlayerStat(player, eventPlayerStat)
+    self._maid[player] = Maid.new()
+    self._maid[player]:GivePromise(self._playerDataStoreService:PromiseDataStore(player))
+        :Then(function(dataStore)
+            self._maid[player]:GivePromise(dataStore:Load("stat", self._defaultStat))
+                :Then(function(statValue)
+                    eventPlayerStat:FireClient(player, statValue)
+                end)
+                :Catch(function(err)
+                    warn("Failed to get Stat for player:", player.Name, err)
+                end)
+        end)
+        :Catch(function(err)
+            warn("Failed to get DataStore for player:", player.Name, err)
+        end)
+end
+
+function PlayerStatServiceServer:_disconnectPlayerStat(player)
+    if self._maid[player] then
+        self._maid[player]:DoCleaning()  -- Clean up the maid for the player
+        self._maid[player] = nil  -- Remove the player from the maid table
+    end
 end
 
 return PlayerStatServiceServer
