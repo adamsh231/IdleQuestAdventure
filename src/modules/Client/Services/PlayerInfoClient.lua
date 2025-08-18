@@ -1,9 +1,10 @@
 local require = require(script.Parent.loader).load(script)
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local PromiseChild = require("promiseChild")
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local SoundService = game:GetService("SoundService")
+local PromiseWrapperUtil = require("PromiseWrapperUtil")
 
 local PlayerInfoClient = {}
 PlayerInfoClient.ServiceName = "PlayerInfoClient"
@@ -23,51 +24,35 @@ function PlayerInfoClient:_initiateServerEvents()
 
 	-- player info promise
 	local getPlayerInfoEvent = ReplicatedStorage.RemoteEvents.PlayerInfoEvent
-	PromiseChild(Player.PlayerGui, "PlayerInfo")
-		:Then(function(playerInfo)
-			local playerInfoFrame = playerInfo:FindFirstChild("PlayerInfoFrame")
-			local playerName = playerInfoFrame:FindFirstChild("PlayerName")
-			local playerLevel = playerInfoFrame:FindFirstChild("PlayerLevel")
-			local playerPic = playerInfoFrame:FindFirstChild("PlayerPic")
-			playerName.Text = Player.Name
-			playerLevel.Text = "..."
-			playerPic.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+	PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerInfo", function(playerInfo)
+		local playerInfoFrame = playerInfo:FindFirstChild("PlayerInfoFrame")
+		local playerName = playerInfoFrame:FindFirstChild("PlayerName")
+		local playerLevel = playerInfoFrame:FindFirstChild("PlayerLevel")
+		local playerPic = playerInfoFrame:FindFirstChild("PlayerPic")
+		playerName.Text = Player.Name
+		playerLevel.Text = "..."
+		playerPic.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+	end)
+	PromiseWrapperUtil:PromiseChild(getPlayerInfoEvent, "GetPlayerStat", function(getPlayerStat)
+		getPlayerStat.OnClientEvent:Connect(function(statValue)
+			self:SetLevel(statValue.Level)
 		end)
-		:Catch(function(err)
-			warn("Failed to get GetPlayerStat event:", err)
-		end)
-	PromiseChild(getPlayerInfoEvent, "GetPlayerStat")
-		:Then(function(getPlayerStat)
-			getPlayerStat.OnClientEvent:Connect(function(infoValue)
-				self:SetLevel(infoValue.BasicStats.Level)
-			end)
-		end)
-		:Catch(function(err)
-			warn("Failed to get GetPlayerStat event:", err)
-		end)
+	end)
 
 	-- SoundTracks
-	-- PromiseChild(SoundService, "Ambients")
-	-- 	:Then(function(ambients)
-	-- 		local mainAmbience = ambients:FindFirstChild("Main")
-	-- 		mainAmbience:Play()
-	-- 		mainAmbience.Looped = true
-	-- 	end)
-	-- 	:Catch(function(err)
-	-- 		warn("Failed to get Ambients:", err)
-	-- 	end)
+	PromiseWrapperUtil:PromiseChild(SoundService, "SoundTracks", function(soundTracks)
+		local mainAmbience = soundTracks:FindFirstChild("Main")
+		mainAmbience:Play()
+		mainAmbience.Looped = true
+	end)
 end
 
 function PlayerInfoClient:SetLevel(newLevel)
-	PromiseChild(Player.PlayerGui, "PlayerInfo")
-		:Then(function(playerInfo)
-			local playerInfoFrame = playerInfo:FindFirstChild("PlayerInfoFrame")
-			local playerLevel = playerInfoFrame:FindFirstChild("PlayerLevel")
-			playerLevel.Text = newLevel
-		end)
-		:Catch(function(err)
-			warn("Failed to get GetPlayerStat event:", err)
-		end)
+	PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerInfo", function(playerInfo)
+		local playerInfoFrame = playerInfo:FindFirstChild("PlayerInfoFrame")
+		local playerLevel = playerInfoFrame:FindFirstChild("PlayerLevel")
+		playerLevel.Text = newLevel
+	end)
 end
 
 return PlayerInfoClient

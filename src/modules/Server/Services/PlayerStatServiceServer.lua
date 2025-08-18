@@ -1,36 +1,37 @@
 local require = require(script.Parent.loader).load(script)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local PromiseChild = require("promiseChild")
 local Players = game:GetService("Players")
 local Maid = require("Maid")
+local PromiseWrapperUtil = require("PromiseWrapperUtil")
 
 local PlayerStatServiceServer = {}
 PlayerStatServiceServer.ServiceName = "PlayerStatServiceServer"
 
-PlayerStatServiceServer._defaultStat = {
-    BasicStats = {
-        HP = 100,
-        AttackDamage = 10,
-        SkillDamage = 10,
-        Defense = 10,
+PlayerStatServiceServer._defaultBasicStat = {
+    HP = 100,
+    AttackDamage = 10,
+    SkillDamage = 10,
+    Defense = 10,
 
-        Level = 1,
-        XP = 0,
-        MaxXP = 100,
-    },
-    AdvancedStats = {
-        CriticalAttackChance = 0,
-        CriticalAttackDamage = 0,
-        CounterAttackChance = 0,
-    },
+    Level = 1,
+    XP = 0,
+    MaxXP = 100,
 }   
+
+PlayerStatServiceServer._defaultAdvancedStat = {
+    CriticalAttackChance = 0,
+    CriticalAttackDamage = 0,
+    CounterAttackChance = 0,
+}
 
 function PlayerStatServiceServer:Init(serviceBag)
     assert(not self._serviceBag, "Already initialized")
     self._serviceBag = assert(serviceBag, "No serviceBag")
     self._playerDataStoreService = serviceBag:GetService(require("PlayerDataStoreService"))
     self._maid = {} -- Initialize the _maid table
+    self._basicStatStore = "basic_stat"
+    self._advancedStatStore = "advanced_stat"
 end
 
 function PlayerStatServiceServer:Start()
@@ -42,25 +43,21 @@ function PlayerStatServiceServer:_initiateClientEvents()
     assert(self._serviceBag, "Not initialized")
 
 	local getPlayerStatEvent = ReplicatedStorage.RemoteEvents.PlayerInfoEvent
-	PromiseChild(getPlayerStatEvent, "GetPlayerStat")
-		:Then(function(getPlayerStat)
-            Players.PlayerAdded:Connect(function(player)
-                self:_connectPlayerStat(player, getPlayerStat)
-            end)
-            Players.PlayerRemoving:Connect(function(player)
-                self:_disconnectPlayerStat(player)
-            end)
-		end)
-		:Catch(function(err)
-			warn("Failed to get GetPlayerStat event:", err)
-		end)
+	PromiseWrapperUtil:PromiseChild(getPlayerStatEvent, "GetPlayerStat", function(getPlayerStat)
+        Players.PlayerAdded:Connect(function(player)
+            self:_connectPlayerStat(player, getPlayerStat)
+        end)
+        Players.PlayerRemoving:Connect(function(player)
+            self:_disconnectPlayerStat(player)
+        end)
+    end)
 end
 
 function PlayerStatServiceServer:_connectPlayerStat(player, eventPlayerStat)
     self._maid[player] = Maid.new()
     self._maid[player]:GivePromise(self._playerDataStoreService:PromiseDataStore(player))
         :Then(function(dataStore)
-            self._maid[player]:GivePromise(dataStore:Load("stat", self._defaultStat))
+            self._maid[player]:GivePromise(dataStore:Load(self._basicStatStore, self._defaultBasicStat))
                 :Then(function(statValue)
                     eventPlayerStat:FireClient(player, statValue)
                 end)
