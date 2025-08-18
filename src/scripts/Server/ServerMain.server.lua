@@ -9,6 +9,3 @@ local playerResourceService = serviceBag:GetService(require("PlayerResourceServi
 
 serviceBag:Init()
 serviceBag:Start()
-
--- Trigger once Here
-playerStatService:TriggerClientEvent()

@@ -1,30 +1,21 @@
 local require = require(script.Parent.loader).load(script)
 
-local Signal = require("Signal")
-
 local PlayerResourceServiceServer = {}
 PlayerResourceServiceServer.ServiceName = "PlayerResourceServiceServer"
+
+PlayerResourceServiceServer._defaultResource = {
+    Coin = 0,
+    Gem = 0,
+}
 
 function PlayerResourceServiceServer:Init(serviceBag)
 	assert(not self._serviceBag, "Already initialized")
 	self._serviceBag = assert(serviceBag, "No serviceBag")
-    self._playerDataStoreService = serviceBag:GetService(require("PlayerDataStoreService"))
-
-    self._coinChanged = Signal.new()
-    self._coinChanged:Connect(function(newAmount)
-        print(" now has " .. newAmount .. " coins.")
-    end)
+    self._playerStatService = serviceBag:GetService(require("PlayerStatServiceServer"))
 end
 
-function PlayerResourceServiceServer._getDefaultResource()
-    local coin, gem = 0, 0
-    return coin, gem
-end
-
-function PlayerResourceServiceServer:SetSignalCoin(value)
+function PlayerResourceServiceServer:Start()
     assert(self._serviceBag, "Not initialized")
-    self._coin = value
-    self._coinChanged:Fire(value)
 end
 
 return PlayerResourceServiceServer

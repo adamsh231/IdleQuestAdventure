@@ -6,6 +6,3 @@ local PlayerInfoClient = serviceBag:GetService(require("PlayerInfoClient"))
 
 serviceBag:Init()
 serviceBag:Start()
-
--- Trigger once Here
-PlayerInfoClient:TriggerListener()

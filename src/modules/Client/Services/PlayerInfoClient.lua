@@ -3,7 +3,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PromiseChild = require("promiseChild")
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
-local Signal = require("Signal")
 local SoundService = game:GetService("SoundService")
 
 local PlayerInfoClient = {}
@@ -16,8 +15,14 @@ end
 
 function PlayerInfoClient:Start()
 	assert(self._serviceBag, "Not initialized")
+	self:_initiateServerEvents()
+end
+
+function PlayerInfoClient:_initiateServerEvents()
+	assert(self._serviceBag, "Not initialized")
 
 	-- player info promise
+	local getPlayerInfoEvent = ReplicatedStorage.RemoteEvents.PlayerInfoEvent
 	PromiseChild(Player.PlayerGui, "PlayerInfo")
 		:Then(function(playerInfo)
 			local playerInfoFrame = playerInfo:FindFirstChild("PlayerInfoFrame")
@@ -31,8 +36,17 @@ function PlayerInfoClient:Start()
 		:Catch(function(err)
 			warn("Failed to get GetPlayerStat event:", err)
 		end)
+	PromiseChild(getPlayerInfoEvent, "GetPlayerStat")
+		:Then(function(getPlayerStat)
+			getPlayerStat.OnClientEvent:Connect(function(infoValue)
+				self:SetLevel(infoValue.BasicStats.Level)
+			end)
+		end)
+		:Catch(function(err)
+			warn("Failed to get GetPlayerStat event:", err)
+		end)
 
-	-- sound service
+	-- SoundTracks
 	-- PromiseChild(SoundService, "Ambients")
 	-- 	:Then(function(ambients)
 	-- 		local mainAmbience = ambients:FindFirstChild("Main")
@@ -44,23 +58,7 @@ function PlayerInfoClient:Start()
 	-- 	end)
 end
 
-function PlayerInfoClient:TriggerListener()
-	assert(self._serviceBag, "Not initialized")
-
-	-- player stats
-	local getPlayerInfoEvent = ReplicatedStorage.RemoteEvents.PlayerInfoEvent
-	PromiseChild(getPlayerInfoEvent, "GetPlayerStat")
-		:Then(function(getPlayerStat)
-			getPlayerStat.OnClientEvent:Connect(function(infoValue)
-				self._setLevel(infoValue.BasicStats.Level)
-			end)
-		end)
-		:Catch(function(err)
-			warn("Failed to get GetPlayerStat event:", err)
-		end)
-end
-
-function PlayerInfoClient._setLevel(newLevel)
+function PlayerInfoClient:SetLevel(newLevel)
 	PromiseChild(Player.PlayerGui, "PlayerInfo")
 		:Then(function(playerInfo)
 			local playerInfoFrame = playerInfo:FindFirstChild("PlayerInfoFrame")
