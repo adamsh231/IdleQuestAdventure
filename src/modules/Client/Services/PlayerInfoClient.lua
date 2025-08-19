@@ -36,13 +36,59 @@ function PlayerInfoClient:_initiateServerEvents()
 		-- event xp
 		local RemoteEvents = ReplicatedStorage.RemoteEvents
 		PromiseWrapperUtil:PromiseChild(RemoteEvents, "GetPlayerStat", function(getPlayerStatEvent)
-			local addXPButton = playerInfo:FindFirstChild("AddXP")
-			addXPButton.MouseButton1Click:Connect(function()
-				getPlayerStatEvent:FireServer(EventConstant.PlayerAddXPEvent)
-			end)
-
 			getPlayerStatEvent.OnClientEvent:Connect(function(statValue)
 				self:SetLevel(statValue.Level)
+			end)
+		end)
+	end)
+
+	-- player stat promise
+	PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerStat", function(playerStat)
+		local playerStatFrame = playerStat:FindFirstChild("PlayerStatFrame")
+		local playerHP = playerStatFrame:FindFirstChild("PlayerHP")
+		local playerAttackDamage = playerStatFrame:FindFirstChild("PlayerAttackDamage")
+		local playerSkillDamage = playerStatFrame:FindFirstChild("PlayerSkillDamage")
+		local playerDefense = playerStatFrame:FindFirstChild("PlayerDefense")
+		local playerLevel = playerStatFrame:FindFirstChild("PlayerLevel")
+		local playerXP = playerStatFrame:FindFirstChild("PlayerXP")
+
+		-- event xp
+		local RemoteEvents = ReplicatedStorage.RemoteEvents
+		PromiseWrapperUtil:PromiseChild(RemoteEvents, "GetPlayerStat", function(getPlayerStatEvent)
+			getPlayerStatEvent.OnClientEvent:Connect(function(statValue)
+				playerHP.Text = string.format("HP: %d", statValue.HP)
+				playerAttackDamage.Text = string.format("Attack Damage: %d", statValue.AttackDamage)
+				playerSkillDamage.Text = string.format("Skill Damage: %d", statValue.SkillDamage)
+				playerDefense.Text = string.format("Defense: %d", statValue.Defense)
+				playerLevel.Text = string.format("Level: %d", statValue.Level)
+				playerXP.Text = string.format("XP: %d / %d", statValue.CurrentXP, statValue.TargetXP)
+			end)
+		end)
+	end)
+
+	-- player card promise
+	PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerCard", function(playerCard)
+		local playerCardFrame = playerCard:FindFirstChild("PlayerCardFrame")
+		local RemoteEvents = ReplicatedStorage.RemoteEvents
+		PromiseWrapperUtil:PromiseChild(RemoteEvents, "GetPlayerStat", function(getPlayerStatEvent)
+				local addAttack = playerCardFrame:FindFirstChild("AddAttack")
+			addAttack.MouseButton1Click:Connect(function()
+				getPlayerStatEvent:FireServer(EventConstant.PlayerAddAttackEvent)
+			end)
+
+			local addDefense = playerCardFrame:FindFirstChild("AddDefense")
+			addDefense.MouseButton1Click:Connect(function()
+				getPlayerStatEvent:FireServer(EventConstant.PlayerAddDefenseEvent)
+			end)
+
+			local addMaxHP = playerCardFrame:FindFirstChild("AddMaxHP")
+			addMaxHP.MouseButton1Click:Connect(function()
+				getPlayerStatEvent:FireServer(EventConstant.PlayerAddMaxHPEvent)
+			end)
+			
+			local addXP = playerCard:FindFirstChild("AddXP")
+			addXP.MouseButton1Click:Connect(function()
+				getPlayerStatEvent:FireServer(EventConstant.PlayerAddXPEvent)
 			end)
 		end)
 	end)
@@ -52,6 +98,7 @@ function PlayerInfoClient:_initiateServerEvents()
 		local soundtrackLobby = soundTracks:FindFirstChild("Lobby")
 		soundtrackLobby:Play()
 		soundtrackLobby.Looped = true
+		soundtrackLobby.Volume = 0.1
 	end)
 end
 

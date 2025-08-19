@@ -1,5 +1,8 @@
 local EventConstant = {
-    PlayerAddXPEvent = "PlayerAddXPEvent"
+    PlayerAddXPEvent = "PlayerAddXPEvent",
+    PlayerAddAttackEvent = "PlayerAddAttackEvent",
+    PlayerAddDefenseEvent = "PlayerAddDefenseEvent",
+    PlayerAddMaxHPEvent = "PlayerAddMaxHPEvent"
 }
 
 return EventConstant
