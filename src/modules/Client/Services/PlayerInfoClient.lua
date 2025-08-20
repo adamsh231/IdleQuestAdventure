@@ -18,6 +18,10 @@ end
 function PlayerInfoClient:Start()
 	assert(self._serviceBag, "Not initialized")
 	self:_initiateServerEvents()
+
+	-- todo: promise here and use connect | add self vars
+	local test = Player:WaitForChild("PlayerGui"):WaitForChild("PlayerInfo")
+	print(test)
 end
 
 function PlayerInfoClient:_initiateServerEvents()
