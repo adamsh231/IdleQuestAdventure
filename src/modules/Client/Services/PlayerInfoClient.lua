@@ -6,6 +6,7 @@ local Player = Players.LocalPlayer
 local SoundService = game:GetService("SoundService")
 local PromiseWrapperUtil = require("PromiseWrapperUtil")
 local EventConstant = require("EventConstant")
+local Blend = require("Blend")
 
 local PlayerInfoClient = {}
 PlayerInfoClient.ServiceName = "PlayerInfoClient"
@@ -13,11 +14,17 @@ PlayerInfoClient.ServiceName = "PlayerInfoClient"
 function PlayerInfoClient:Init(serviceBag)
 	assert(not self._serviceBag, "Already initialized")
 	self._serviceBag = assert(serviceBag, "No serviceBag")
+	self._levelState = Blend.State("0")
 end
 
 function PlayerInfoClient:Start()
 	assert(self._serviceBag, "Not initialized")
 	self:_initiateServerEvents()
+
+	task.delay(4, function()
+		print("UPDATE!!!")
+		self._levelState.Value = 100
+	end)
 end
 
 function PlayerInfoClient:_initiateServerEvents()
@@ -35,8 +42,13 @@ function PlayerInfoClient:_initiateServerEvents()
 			PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerInfo", function(playerInfo)
 				local playerInfoFrame = playerInfo:FindFirstChild("PlayerInfoFrame")
 				local playerName = playerInfoFrame:FindFirstChild("PlayerName")
-				local playerLevel = playerInfoFrame:FindFirstChild("PlayerLevel")
 				local playerPic = playerInfoFrame:FindFirstChild("PlayerPic")
+				local playerLevel = playerInfoFrame:FindFirstChild("PlayerLevel")
+
+				Blend.mount(playerLevel, {
+					Text = self._levelState
+				})
+
 				playerName.Text = Player.DisplayName
 				playerPic.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
 			end)
@@ -50,6 +62,10 @@ function PlayerInfoClient:_initiateServerEvents()
 				local playerDefense = playerStatFrame:FindFirstChild("PlayerDefense")
 				local playerLevel = playerStatFrame:FindFirstChild("PlayerLevel")
 				local playerXP = playerStatFrame:FindFirstChild("PlayerXP")
+
+				Blend.mount(playerLevel, {
+					Text = self._levelState
+				})
 
 				-- event xp
 				playerHP.Text = string.format("HP: %d", statValue.HP)
