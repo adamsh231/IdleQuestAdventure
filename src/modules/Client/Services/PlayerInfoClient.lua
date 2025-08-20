@@ -18,48 +18,40 @@ end
 function PlayerInfoClient:Start()
 	assert(self._serviceBag, "Not initialized")
 	self:_initiateServerEvents()
-
-	-- todo: promise here and use connect | add self vars
-	local test = Player:WaitForChild("PlayerGui"):WaitForChild("PlayerInfo")
-	print(test)
 end
 
 function PlayerInfoClient:_initiateServerEvents()
 	assert(self._serviceBag, "Not initialized")
 
-	-- player info promise
-	PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerInfo", function(playerInfo)
-		local playerInfoFrame = playerInfo:FindFirstChild("PlayerInfoFrame")
-		local playerName = playerInfoFrame:FindFirstChild("PlayerName")
-		local playerLevel = playerInfoFrame:FindFirstChild("PlayerLevel")
-		local playerPic = playerInfoFrame:FindFirstChild("PlayerPic")
-		playerName.Text = Player.DisplayName
-		playerLevel.Text = "-"
-		playerPic.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
-		
-		-- event xp
-		local RemoteEvents = ReplicatedStorage.RemoteEvents
-		PromiseWrapperUtil:PromiseChild(RemoteEvents, "GetPlayerStat", function(getPlayerStatEvent)
-			getPlayerStatEvent.OnClientEvent:Connect(function(statValue)
-				self:SetLevel(statValue.Level)
+	local RemoteEvents = ReplicatedStorage.RemoteEvents
+	PromiseWrapperUtil:PromiseChild(RemoteEvents, "GetPlayerStat", function(getPlayerStatEvent)
+
+		-- todo: this is not proper
+		-- add cache in each var
+		-- study promises
+		getPlayerStatEvent.OnClientEvent:Connect(function(statValue)
+
+			-- player info promise
+			PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerInfo", function(playerInfo)
+				local playerInfoFrame = playerInfo:FindFirstChild("PlayerInfoFrame")
+				local playerName = playerInfoFrame:FindFirstChild("PlayerName")
+				local playerLevel = playerInfoFrame:FindFirstChild("PlayerLevel")
+				local playerPic = playerInfoFrame:FindFirstChild("PlayerPic")
+				playerName.Text = Player.DisplayName
+				playerPic.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
 			end)
-		end)
-	end)
 
-	-- player stat promise
-	PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerStat", function(playerStat)
-		local playerStatFrame = playerStat:FindFirstChild("PlayerStatFrame")
-		local playerHP = playerStatFrame:FindFirstChild("PlayerHP")
-		local playerAttackDamage = playerStatFrame:FindFirstChild("PlayerAttackDamage")
-		local playerSkillDamage = playerStatFrame:FindFirstChild("PlayerSkillDamage")
-		local playerDefense = playerStatFrame:FindFirstChild("PlayerDefense")
-		local playerLevel = playerStatFrame:FindFirstChild("PlayerLevel")
-		local playerXP = playerStatFrame:FindFirstChild("PlayerXP")
+			-- player stat promise
+			PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerStat", function(playerStat)
+				local playerStatFrame = playerStat:FindFirstChild("PlayerStatFrame")
+				local playerHP = playerStatFrame:FindFirstChild("PlayerHP")
+				local playerAttackDamage = playerStatFrame:FindFirstChild("PlayerAttackDamage")
+				local playerSkillDamage = playerStatFrame:FindFirstChild("PlayerSkillDamage")
+				local playerDefense = playerStatFrame:FindFirstChild("PlayerDefense")
+				local playerLevel = playerStatFrame:FindFirstChild("PlayerLevel")
+				local playerXP = playerStatFrame:FindFirstChild("PlayerXP")
 
-		-- event xp
-		local RemoteEvents = ReplicatedStorage.RemoteEvents
-		PromiseWrapperUtil:PromiseChild(RemoteEvents, "GetPlayerStat", function(getPlayerStatEvent)
-			getPlayerStatEvent.OnClientEvent:Connect(function(statValue)
+				-- event xp
 				playerHP.Text = string.format("HP: %d", statValue.HP)
 				playerAttackDamage.Text = string.format("Attack Damage: %d", statValue.AttackDamage)
 				playerSkillDamage.Text = string.format("Skill Damage: %d", statValue.SkillDamage)
@@ -67,6 +59,8 @@ function PlayerInfoClient:_initiateServerEvents()
 				playerLevel.Text = string.format("Level: %d", statValue.Level)
 				playerXP.Text = string.format("XP: %d / %d", statValue.CurrentXP, statValue.TargetXP)
 			end)
+
+			self:SetLevel(statValue.Level)
 		end)
 	end)
 
