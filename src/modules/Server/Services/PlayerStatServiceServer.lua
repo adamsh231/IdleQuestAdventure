@@ -43,8 +43,6 @@ function PlayerStatServiceServer:Start()
 end
 
 function PlayerStatServiceServer:_initiateClientEvents()
-    assert(self._serviceBag, "Not initialized")
-
 	local RemoteEvents = ReplicatedStorage.RemoteEvents
 	PromiseWrapperUtil:PromiseChild(RemoteEvents, "GetPlayerStat", function(getPlayerStatEvent)
         Players.PlayerAdded:Connect(function(player)

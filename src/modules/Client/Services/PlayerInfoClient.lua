@@ -35,19 +35,14 @@ function PlayerInfoClient:Start()
 		self._playerInfo = instances.playerInfo
 		self._playerStat = instances.playerStat
 		self._playerCard = instances.playerCard
-		self:_initiateServerEvents()
-	end)
-
-
-	task.delay(4, function()
-		print("UPDATE!!!")
-		self._levelState.Value = 100
+		self:_initiatePlayerInfo()
+		self:_initiatePlayerStat()
+		self:_initiatePlayerCard()
+		self:PlayLobbySoundTrack()
 	end)
 end
 
-function PlayerInfoClient:_initiateServerEvents()
-	assert(self._serviceBag, "Not initialized")
-
+function PlayerInfoClient:_initiatePlayerInfo()
 	local playerInfoFrame = self._playerInfo:FindFirstChild("PlayerInfoFrame")
 	local playerName = playerInfoFrame:FindFirstChild("PlayerName")
 	local playerPic = playerInfoFrame:FindFirstChild("PlayerPic")
@@ -57,7 +52,9 @@ function PlayerInfoClient:_initiateServerEvents()
 	Blend.mount(playerLevel, {
 		Text = self._levelState
 	})
+end
 
+function PlayerInfoClient:_initiatePlayerCard()
 	local playerStatFrame = self._playerStat:FindFirstChild("PlayerStatFrame")
 	local playerHP = playerStatFrame:FindFirstChild("PlayerHP")
 	local playerAttackDamage = playerStatFrame:FindFirstChild("PlayerAttackDamage")
@@ -69,6 +66,18 @@ function PlayerInfoClient:_initiateServerEvents()
 		Text = self._levelState
 	})
 
+	self._getPlayerStatEvent.OnClientEvent:Connect(function(statValue)
+		playerHP.Text = string.format("HP: %d", statValue.HP)
+		playerAttackDamage.Text = string.format("Attack Damage: %d", statValue.AttackDamage)
+		playerSkillDamage.Text = string.format("Skill Damage: %d", statValue.SkillDamage)
+		playerDefense.Text = string.format("Defense: %d", statValue.Defense)
+		playerXP.Text = string.format("XP: %d / %d", statValue.CurrentXP, statValue.TargetXP)
+
+		self._levelState.Value = statValue.Level
+	end)
+end
+
+function PlayerInfoClient:_initiatePlayerStat()
 	local playerCardFrame = self._playerCard:FindFirstChild("PlayerCardFrame")
 	local addXP = self._playerCard:FindFirstChild("AddXP")
 	local addAttack = playerCardFrame:FindFirstChild("AddAttack")
@@ -86,19 +95,6 @@ function PlayerInfoClient:_initiateServerEvents()
 	addXP.MouseButton1Click:Connect(function()
 		self._getPlayerStatEvent:FireServer(EventConstant.PlayerAddXPEvent)
 	end)
-	
-	self._getPlayerStatEvent.OnClientEvent:Connect(function(statValue)
-		playerHP.Text = string.format("HP: %d", statValue.HP)
-		playerAttackDamage.Text = string.format("Attack Damage: %d", statValue.AttackDamage)
-		playerSkillDamage.Text = string.format("Skill Damage: %d", statValue.SkillDamage)
-		playerDefense.Text = string.format("Defense: %d", statValue.Defense)
-		playerStatLevel.Text = string.format("Level: %d", statValue.Level)
-		playerXP.Text = string.format("XP: %d / %d", statValue.CurrentXP, statValue.TargetXP)
-
-		self:SetLevel(statValue.Level)
-	end)
-
-	self:PlayLobbySoundTrack()
 end
 
 function PlayerInfoClient:PlayLobbySoundTrack()
@@ -107,14 +103,6 @@ function PlayerInfoClient:PlayLobbySoundTrack()
 		soundtrackLobby:Play()
 		soundtrackLobby.Looped = true
 		soundtrackLobby.Volume = 0.1
-	end)
-end
-
-function PlayerInfoClient:SetLevel(newLevel)
-	PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerInfo", function(playerInfo)
-		local playerInfoFrame = playerInfo:FindFirstChild("PlayerInfoFrame")
-		local playerLevel = playerInfoFrame:FindFirstChild("PlayerLevel")
-		playerLevel.Text = newLevel
 	end)
 end
 
