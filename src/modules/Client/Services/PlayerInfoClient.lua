@@ -5,8 +5,10 @@ local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local SoundService = game:GetService("SoundService")
 local PromiseWrapperUtil = require("PromiseWrapperUtil")
+local PromiseChild = require("promiseChild")
 local EventConstant = require("EventConstant")
 local Blend = require("Blend")
+local PromiseUtils = require("PromiseUtils")
 
 local PlayerInfoClient = {}
 PlayerInfoClient.ServiceName = "PlayerInfoClient"
@@ -14,6 +16,8 @@ PlayerInfoClient.ServiceName = "PlayerInfoClient"
 function PlayerInfoClient:Init(serviceBag)
 	assert(not self._serviceBag, "Already initialized")
 	self._serviceBag = assert(serviceBag, "No serviceBag")
+
+	-- initiate state management
 	self._levelState = Blend.State("0")
 end
 
@@ -31,6 +35,14 @@ function PlayerInfoClient:_initiateServerEvents()
 	assert(self._serviceBag, "Not initialized")
 
 	local RemoteEvents = ReplicatedStorage.RemoteEvents
+	PromiseUtils.combine({
+		getPlayerStatEvent = PromiseChild(RemoteEvents, "GetPlayerStat"),
+		playerInfo = PromiseChild(Player.PlayerGui, "PlayerInfo"),
+		playerStat = PromiseChild(Player.PlayerGui, "PlayerStat")
+	}):Then(function(combined)
+		print(combined)
+	end)
+
 	PromiseWrapperUtil:PromiseChild(RemoteEvents, "GetPlayerStat", function(getPlayerStatEvent)
 
 		-- todo: this is not proper
@@ -107,7 +119,11 @@ function PlayerInfoClient:_initiateServerEvents()
 		end)
 	end)
 
-	-- SoundTracks
+	-- play lobby sound track
+	self:PlayLobbySoundTrack()
+end
+
+function PlayerInfoClient:PlayLobbySoundTrack()
 	PromiseWrapperUtil:PromiseChild(SoundService, "SoundTracks", function(soundTracks)
 		local soundtrackLobby = soundTracks:FindFirstChild("Lobby")
 		soundtrackLobby:Play()
