@@ -23,7 +23,21 @@ end
 
 function PlayerInfoClient:Start()
 	assert(self._serviceBag, "Not initialized")
-	self:_initiateServerEvents()
+
+	local RemoteEvents = ReplicatedStorage.RemoteEvents
+	PromiseUtils.combine({
+		getPlayerStatEvent = PromiseChild(RemoteEvents, "GetPlayerStat"),
+		playerInfo = PromiseChild(Player.PlayerGui, "PlayerInfo"),
+		playerStat = PromiseChild(Player.PlayerGui, "PlayerStat"),
+		playerCard = PromiseChild(Player.PlayerGui, "PlayerCard"),
+	}):Then(function(instances)
+		self._getPlayerStatEvent = instances.getPlayerStatEvent
+		self._playerInfo = instances.playerInfo
+		self._playerStat = instances.playerStat
+		self._playerCard = instances.playerCard
+		self:_initiateServerEvents()
+	end)
+
 
 	task.delay(4, function()
 		print("UPDATE!!!")
@@ -34,92 +48,56 @@ end
 function PlayerInfoClient:_initiateServerEvents()
 	assert(self._serviceBag, "Not initialized")
 
-	local RemoteEvents = ReplicatedStorage.RemoteEvents
-	PromiseUtils.combine({
-		getPlayerStatEvent = PromiseChild(RemoteEvents, "GetPlayerStat"),
-		playerInfo = PromiseChild(Player.PlayerGui, "PlayerInfo"),
-		playerStat = PromiseChild(Player.PlayerGui, "PlayerStat")
-	}):Then(function(combined)
-		print(combined)
+	local playerInfoFrame = self._playerInfo:FindFirstChild("PlayerInfoFrame")
+	local playerName = playerInfoFrame:FindFirstChild("PlayerName")
+	local playerPic = playerInfoFrame:FindFirstChild("PlayerPic")
+	local playerLevel = playerInfoFrame:FindFirstChild("PlayerLevel")
+	playerName.Text = Player.DisplayName
+	playerPic.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+	Blend.mount(playerLevel, {
+		Text = self._levelState
+	})
+
+	local playerStatFrame = self._playerStat:FindFirstChild("PlayerStatFrame")
+	local playerHP = playerStatFrame:FindFirstChild("PlayerHP")
+	local playerAttackDamage = playerStatFrame:FindFirstChild("PlayerAttackDamage")
+	local playerSkillDamage = playerStatFrame:FindFirstChild("PlayerSkillDamage")
+	local playerDefense = playerStatFrame:FindFirstChild("PlayerDefense")
+	local playerStatLevel = playerStatFrame:FindFirstChild("PlayerLevel")
+	local playerXP = playerStatFrame:FindFirstChild("PlayerXP")
+	Blend.mount(playerStatLevel, {
+		Text = self._levelState
+	})
+
+	local playerCardFrame = self._playerCard:FindFirstChild("PlayerCardFrame")
+	local addXP = self._playerCard:FindFirstChild("AddXP")
+	local addAttack = playerCardFrame:FindFirstChild("AddAttack")
+	local addDefense = playerCardFrame:FindFirstChild("AddDefense")
+	local addMaxHP = playerCardFrame:FindFirstChild("AddMaxHP")
+	addAttack.MouseButton1Click:Connect(function()
+		self._getPlayerStatEvent:FireServer(EventConstant.PlayerAddAttackEvent)
+	end)
+	addDefense.MouseButton1Click:Connect(function()
+		self._getPlayerStatEvent:FireServer(EventConstant.PlayerAddDefenseEvent)
+	end)
+	addMaxHP.MouseButton1Click:Connect(function()
+		self._getPlayerStatEvent:FireServer(EventConstant.PlayerAddMaxHPEvent)
+	end)
+	addXP.MouseButton1Click:Connect(function()
+		self._getPlayerStatEvent:FireServer(EventConstant.PlayerAddXPEvent)
+	end)
+	
+	self._getPlayerStatEvent.OnClientEvent:Connect(function(statValue)
+		playerHP.Text = string.format("HP: %d", statValue.HP)
+		playerAttackDamage.Text = string.format("Attack Damage: %d", statValue.AttackDamage)
+		playerSkillDamage.Text = string.format("Skill Damage: %d", statValue.SkillDamage)
+		playerDefense.Text = string.format("Defense: %d", statValue.Defense)
+		playerStatLevel.Text = string.format("Level: %d", statValue.Level)
+		playerXP.Text = string.format("XP: %d / %d", statValue.CurrentXP, statValue.TargetXP)
+
+		self:SetLevel(statValue.Level)
 	end)
 
-	PromiseWrapperUtil:PromiseChild(RemoteEvents, "GetPlayerStat", function(getPlayerStatEvent)
-
-		-- todo: this is not proper
-		-- add cache in each var
-		-- study promises
-		getPlayerStatEvent.OnClientEvent:Connect(function(statValue)
-
-			-- player info promise
-			PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerInfo", function(playerInfo)
-				local playerInfoFrame = playerInfo:FindFirstChild("PlayerInfoFrame")
-				local playerName = playerInfoFrame:FindFirstChild("PlayerName")
-				local playerPic = playerInfoFrame:FindFirstChild("PlayerPic")
-				local playerLevel = playerInfoFrame:FindFirstChild("PlayerLevel")
-
-				Blend.mount(playerLevel, {
-					Text = self._levelState
-				})
-
-				playerName.Text = Player.DisplayName
-				playerPic.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
-			end)
-
-			-- player stat promise
-			PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerStat", function(playerStat)
-				local playerStatFrame = playerStat:FindFirstChild("PlayerStatFrame")
-				local playerHP = playerStatFrame:FindFirstChild("PlayerHP")
-				local playerAttackDamage = playerStatFrame:FindFirstChild("PlayerAttackDamage")
-				local playerSkillDamage = playerStatFrame:FindFirstChild("PlayerSkillDamage")
-				local playerDefense = playerStatFrame:FindFirstChild("PlayerDefense")
-				local playerLevel = playerStatFrame:FindFirstChild("PlayerLevel")
-				local playerXP = playerStatFrame:FindFirstChild("PlayerXP")
-
-				Blend.mount(playerLevel, {
-					Text = self._levelState
-				})
-
-				-- event xp
-				playerHP.Text = string.format("HP: %d", statValue.HP)
-				playerAttackDamage.Text = string.format("Attack Damage: %d", statValue.AttackDamage)
-				playerSkillDamage.Text = string.format("Skill Damage: %d", statValue.SkillDamage)
-				playerDefense.Text = string.format("Defense: %d", statValue.Defense)
-				playerLevel.Text = string.format("Level: %d", statValue.Level)
-				playerXP.Text = string.format("XP: %d / %d", statValue.CurrentXP, statValue.TargetXP)
-			end)
-
-			self:SetLevel(statValue.Level)
-		end)
-	end)
-
-	-- player card promise
-	PromiseWrapperUtil:PromiseChild(Player.PlayerGui, "PlayerCard", function(playerCard)
-		local playerCardFrame = playerCard:FindFirstChild("PlayerCardFrame")
-		local RemoteEvents = ReplicatedStorage.RemoteEvents
-		PromiseWrapperUtil:PromiseChild(RemoteEvents, "GetPlayerStat", function(getPlayerStatEvent)
-				local addAttack = playerCardFrame:FindFirstChild("AddAttack")
-			addAttack.MouseButton1Click:Connect(function()
-				getPlayerStatEvent:FireServer(EventConstant.PlayerAddAttackEvent)
-			end)
-
-			local addDefense = playerCardFrame:FindFirstChild("AddDefense")
-			addDefense.MouseButton1Click:Connect(function()
-				getPlayerStatEvent:FireServer(EventConstant.PlayerAddDefenseEvent)
-			end)
-
-			local addMaxHP = playerCardFrame:FindFirstChild("AddMaxHP")
-			addMaxHP.MouseButton1Click:Connect(function()
-				getPlayerStatEvent:FireServer(EventConstant.PlayerAddMaxHPEvent)
-			end)
-			
-			local addXP = playerCard:FindFirstChild("AddXP")
-			addXP.MouseButton1Click:Connect(function()
-				getPlayerStatEvent:FireServer(EventConstant.PlayerAddXPEvent)
-			end)
-		end)
-	end)
-
-	-- play lobby sound track
 	self:PlayLobbySoundTrack()
 end
 
