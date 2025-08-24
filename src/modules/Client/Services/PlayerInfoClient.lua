@@ -62,9 +62,12 @@ function PlayerInfoClient:_initiatePlayerCard()
 	local playerDefense = playerStatFrame:FindFirstChild("PlayerDefense")
 	local playerStatLevel = playerStatFrame:FindFirstChild("PlayerLevel")
 	local playerXP = playerStatFrame:FindFirstChild("PlayerXP")
-	Blend.mount(playerStatLevel, {
-		Text = self._levelState
-	})
+	local levelStatCompute = Blend.Computed(self._levelState, function(level)
+		return string.format("Level: %d", level)
+	end)
+	levelStatCompute:Subscribe(function(levelText)
+		playerStatLevel.Text = levelText
+	end)
 
 	self._getPlayerStatEvent.OnClientEvent:Connect(function(statValue)
 		playerHP.Text = string.format("HP: %d", statValue.HP)
